@@ -5,7 +5,7 @@ from time import time
 start_time = time()
 
 now_dir = os.path.dirname(os.path.abspath(__file__))
-data_dir = os.path.join(now_dir, "../../../../../datas/ml-latest/ratings.csv")
+data_dir = os.path.join(now_dir, "../../../../../../datas/ml-latest/ratings.csv")
 
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import from_unixtime
