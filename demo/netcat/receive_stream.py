@@ -9,7 +9,7 @@ def process_stream(rdd):
         print(f"Received: {record}")
 
 stream = ssc.socketTextStream("localhost", 9999)
-stream.foreachRDD(process_stream)
+stream.pprint()
 
 ssc.start()
 ssc.awaitTermination()
