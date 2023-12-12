@@ -4,10 +4,6 @@ from pyspark.streaming import StreamingContext
 sc = SparkContext(appName="demo_stream")
 ssc = StreamingContext(sc, 1)
 
-def process_stream(rdd):
-    for record in rdd.collect():
-        print(f"Received: {record}")
-
 stream = ssc.socketTextStream("localhost", 9999)
 stream.pprint()
 
