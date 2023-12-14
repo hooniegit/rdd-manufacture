@@ -1,38 +1,34 @@
-from pyspark import SparkContext
+from pyspark.sql import SparkSession
 from pyspark.streaming import StreamingContext
 import redis
+import json
 
-def process_message(message):
-    print(f"Received: {message['data']} from channel {message['channel']}")
+# Redis로부터 데이터를 수신하는 함수
+def receive_data_from_redis(rdd):
+    if not rdd.isEmpty():
+        for message in rdd.collect():
+            print(f"Received message: {message}")
 
-# 스트리밍 처리를 위한 함수
-def process_stream(rdd):
-    rdd.foreach(process_message)
+# Spark Session 및 StreamingContext 생성
+spark = SparkSession.builder.appName("RedisStreamingExample").getOrCreate()
+sc = spark.sparkContext
+ssc = StreamingContext(sc, 1)  # 1초마다 배치 처리
 
-
-sc = SparkContext(appName="demo_stream")
-ssc = StreamingContext(sc, 1)
-
-redis_host = 'localhost'
+# Redis 연결 정보 및 채널 설정
+redis_host = "localhost"
 redis_port = 6379
-redis_client = redis.StrictRedis(host=redis_host, 
-                                 port=redis_port, 
-                                 decode_responses=True)
+redis_channel = "hoonie_channel"
 
-channel_name = 'hoonie_channel'
-pubsub = redis_client.pubsub()
-pubsub.subscribe(channel_name)
+# Redis로부터 데이터를 수신하는 DStream 생성
+stream = ssc \
+    .socketTextStream(redis_host, redis_port) \
+    .map(lambda message: json.loads(message))  # 각 메시지를 JSON 형태로 파싱
 
-def process_stream(rdd):
-    for record in rdd.collect():
-        print(f"Received: {record}")
+# 수신된 데이터 처리 함수 등록
+stream.foreachRDD(receive_data_from_redis)
 
-# 스트리밍 소스 생성
-stream = ssc.socketTextStream("localhost", 6379)
-
-# 스트리밍 처리 함수 설정
-stream.foreachRDD(process_stream)
-
-# 스트리밍 시작
+# 스트림 시작
 ssc.start()
+
+# 스트림이 종료될 때까지 대기
 ssc.awaitTermination()
