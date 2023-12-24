@@ -1,5 +1,7 @@
 from pyspark import SparkConf, SparkContext
 from pyspark.sql import SparkSession
+from pyspark.sql.functions import lit
+from time import time
 
 conf = SparkConf().setAppName("streaming_pub_sub") \
                   .setMaster("spark://workspace:7077")
@@ -19,6 +21,8 @@ df = spark \
     .option("subscribe", input_kafka_topic) \
     .load()
 
+start_time = time()
+
 transformed_df = df.selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)")
 
 query1 = transformed_df \
@@ -28,7 +32,12 @@ query1 = transformed_df \
     .option("checkpointLocation", f"{checkpoint_dir}/query1_checkpoint") \
     .start()
 
-query2 = transformed_df \
+end_time = time()
+spent_time = float(f"{end_time - start_time:.2f}")
+time_df = transformed_df.drop("value") \
+                        .withColumn("value", lit(spent_time))
+
+query2 = time_df \
     .selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)") \
     .writeStream \
     .outputMode("append") \
