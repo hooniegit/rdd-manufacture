@@ -1,7 +1,7 @@
 import os
 
 now_dir = os.path.dirname(os.path.abspath(__file__))
-cycle_dir = os.path.join(now_dir, "./json_cycle_finale.json")
+cycle_dir = os.path.join(now_dir, "./json_weather.json")
 
 from pyspark import SparkConf, SparkContext
 from pyspark.sql import SparkSession

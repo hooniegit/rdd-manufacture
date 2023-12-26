@@ -47,7 +47,12 @@ df = spark \
 
 query = df \
     .writeStream \
-    .foreachBatch(process_data) \
+    .foreachBatch(lambda batchDF, batchId: process_data(batchDF, batchId)) \
     .start()
+    
+# query = df \
+#     .writeStream \
+#     .foreachBatch(process_data) \
+#     .start()
 
 query.awaitTermination()
